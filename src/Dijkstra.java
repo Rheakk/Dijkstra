@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.io.FileReader;
 import java.io.BufferedReader;
 import java.lang.Math;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.ArrayList;
 
 public class Dijkstra {
 
@@ -120,18 +123,18 @@ public class Dijkstra {
      */
     public void computeAllEuclideanDistances() {
 
-        for (Map.Entry<String,Vertex> name : vertexNames.entrySet()) {
-            Vertex curVertex = vertexNames.get(name);
+        for (Map.Entry<String,Vertex> entry : vertexNames.entrySet()) {
+            Vertex curVertex = entry.getValue();
             List<Edge> adjacentEdges = curVertex.adjacentEdges;
 
-           /* for (Edge adjEdge : adjacentEdges) {
+            for (Edge adjEdge : adjacentEdges) {
                 Vertex v1 = adjEdge.source;
                 System.out.println(v1.name);
                 Vertex v2 = adjEdge.target;
                 System.out.println(v2.name);
                 adjEdge.distance = computeEuclideanDistance(v1.x, v1.y, v2.x, v2.y);
                 System.out.println(adjEdge.distance);
-            } */
+            }
         }
 
     }
@@ -143,7 +146,60 @@ public class Dijkstra {
      *          (String) starting city name
      */
     public void doDijkstra(String s) {
-        // TODO
+
+        computeAllEuclideanDistances();
+
+        Vertex src = getVertex(s);
+        List<Vertex> input = new ArrayList<>();
+
+        for (Map.Entry<String,Vertex> entry : vertexNames.entrySet()) {
+
+            Vertex v = entry.getValue();
+            v.distance = Integer.MAX_VALUE;
+            input.add(v);
+
+        }
+
+        src.distance = 0;
+
+        while (!input.isEmpty()){
+
+            Vertex u = findMin(input);
+            input.remove(u);
+
+            List<Edge> adjacentEdges = u.adjacentEdges;
+
+            for (Edge adjEdge : adjacentEdges) {
+
+                Vertex v = adjEdge.target;
+
+                if (input.contains(v)) {
+                    double newDist = u.distance + adjEdge.distance;
+                    if (v.distance > newDist){
+                        v.distance = newDist;
+                        v.prev = u;
+                    }
+                }
+
+            }
+        }
+
+    }
+
+    public Vertex findMin(List<Vertex> list){
+
+        Vertex minV = list.get(0);
+
+        for (int i = 1; i < list.size(); i++){
+
+            Vertex v = list.get(i);
+            if (v.distance < minV.distance){
+                minV = v;
+            }
+
+        }
+
+        return minV;
     }
 
     /**
@@ -157,10 +213,23 @@ public class Dijkstra {
      * @return (List<Edge>) list of edges from s to t
      */
     public List<Edge> getDijkstraPath(String s, String t) {
+
         doDijkstra(s);
 
-        // TODO
-        return null; // Replace this
+        List<Edge> path = new ArrayList<>();
+        Vertex start = getVertex(s);
+        Vertex end = getVertex(t);
+
+        path.add(new Edge(end.prev, end, end.distance));
+
+        Vertex curV = end.prev;
+
+        while (curV != start){
+            path.add(new Edge(curV.prev, curV, curV.distance));
+            curV = curV.prev;
+        }
+
+        return path;
     }
 
     // STUDENT CODE ENDS HERE
